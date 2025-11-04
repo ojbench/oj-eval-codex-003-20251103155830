@@ -1,0 +1,25 @@
+Before scroll:
+Team_thu 1 2 68 + -1/1 + -2/2
+Team_pku 2 2 110 + -1 +1 0/3
+Team_sjtu 3 2 116 + +2 . -1/1
+
+Frozen submissions (in order):
+- Team_thu B Wrong_Answer 200
+- Team_pku D Time_Limit_Exceed 230
+- Team_pku D Runtime_Error 235
+- Team_pku D Accepted 250
+- Team_sjtu D Accepted 255
+- Team_thu D Accepted 290
+- Team_thu B Runtime_Error 299
+
+Processing:
+1. Team_thu B Wrong_Answer 200 -> no change to ranking
+2. Team_pku D Time_Limit_Exceed 230 -> no change to ranking
+3. Team_pku D Runtime_Error 235 -> no change to ranking
+4. Team_pku D Accepted 250 -> Team_pku now has 3 solved, 400 penalty
+   - Team_pku moves from rank 2 to rank 1 (overtaking Team_thu)
+   - Output: Team_pku Team_thu 3 400
+5. Team_sjtu D Accepted 255 -> Team_sjtu now has 3 solved, 391 penalty
+   - Team_sjtu moves from rank 3 to rank 1 (overtaking Team_thu at rank 2)
+   - But actually overtakes Team_pku first (now at rank 2) then Team_thu (now at rank 3)
+   - Output: Team_sjtu Team_thu 3 391

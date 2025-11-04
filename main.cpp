@@ -106,6 +106,9 @@ void printScoreboard() {
 }
 
 int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    
     string line;
     
     while (getline(cin, line)) {
@@ -201,6 +204,12 @@ int main() {
                 updateRankings();
                 printScoreboard();
                 
+                // Store initial rankings at the start of scroll
+                vector<string> initialRankToTeam(teamOrder.size() + 1);
+                for (const string& t : teamOrder) {
+                    initialRankToTeam[teams[t].ranking] = t;
+                }
+                
                 // Collect all frozen submissions
                 vector<pair<int, pair<string, int>>> frozenSubs;
                 for (auto& p : teams) {
@@ -213,8 +222,8 @@ int main() {
                 
                 sort(frozenSubs.begin(), frozenSubs.end());
                 
-                // Track ranking changes
-                vector<pair<string, pair<string, pair<int, int>>>> rankChanges;
+                // Track teams that had ranking changes
+                vector<string> changedTeams;
                 
                 for (auto& fs : frozenSubs) {
                     string teamName = fs.second.first;
@@ -237,13 +246,7 @@ int main() {
                             updateRankings();
                             
                             if (team.ranking < oldRank) {
-                                // Find which team was at this ranking before
-                                for (const string& other : teamOrder) {
-                                    if (teams[other].ranking == oldRank && other != teamName) {
-                                        rankChanges.push_back({teamName, {other, {team.solvedCount, team.penalty}}});
-                                        break;
-                                    }
-                                }
+                                changedTeams.push_back(teamName);
                             }
                         } else {
                             ps.wrongAttempts++;
@@ -253,13 +256,15 @@ int main() {
                     sub.processed = true;
                 }
                 
-                // Sort ranking changes by final rank
-                sort(rankChanges.begin(), rankChanges.end(), [](const auto& a, const auto& b) {
-                    return teams[a.first].ranking < teams[b.first].ranking;
+                // Sort changed teams by final rank
+                sort(changedTeams.begin(), changedTeams.end(), [](const string& a, const string& b) {
+                    return teams[a].ranking < teams[b].ranking;
                 });
                 
-                for (const auto& rc : rankChanges) {
-                    cout << rc.first << " " << rc.second.first << " " << rc.second.second.first << " " << rc.second.second.second << "\n";
+                // Output ranking changes
+                for (const string& teamName : changedTeams) {
+                    Team& team = teams[teamName];
+                    cout << teamName << " " << initialRankToTeam[team.ranking] << " " << team.solvedCount << " " << team.penalty << "\n";
                 }
                 
                 // Clear frozen submission counts

@@ -222,8 +222,8 @@ int main() {
                 
                 sort(frozenSubs.begin(), frozenSubs.end());
                 
-                // Track teams that had ranking changes
-                vector<string> changedTeams;
+                // Track ranking changes: (best_rank, penalty, team_name, solved, penalty)
+                map<string, tuple<int, int, int, int>> teamBestRank;
                 
                 for (auto& fs : frozenSubs) {
                     string teamName = fs.second.first;
@@ -246,7 +246,10 @@ int main() {
                             updateRankings();
                             
                             if (team.ranking < oldRank) {
-                                changedTeams.push_back(teamName);
+                                if (teamBestRank.find(teamName) == teamBestRank.end() || 
+                                    get<0>(teamBestRank[teamName]) > team.ranking) {
+                                    teamBestRank[teamName] = make_tuple(team.ranking, team.penalty, team.solvedCount, team.penalty);
+                                }
                             }
                         } else {
                             ps.wrongAttempts++;
@@ -256,15 +259,22 @@ int main() {
                     sub.processed = true;
                 }
                 
-                // Sort changed teams by final rank
-                sort(changedTeams.begin(), changedTeams.end(), [](const string& a, const string& b) {
-                    return teams[a].ranking < teams[b].ranking;
-                });
+                // Collect and sort ranking changes
+                vector<tuple<int, int, string, int, int>> rankChanges;
+                for (const auto& entry : teamBestRank) {
+                    rankChanges.push_back(make_tuple(get<0>(entry.second), get<1>(entry.second), entry.first, 
+                                                     get<2>(entry.second), get<3>(entry.second)));
+                }
+                
+                sort(rankChanges.begin(), rankChanges.end());
                 
                 // Output ranking changes
-                for (const string& teamName : changedTeams) {
-                    Team& team = teams[teamName];
-                    cout << teamName << " " << initialRankToTeam[team.ranking] << " " << team.solvedCount << " " << team.penalty << "\n";
+                for (const auto& rc : rankChanges) {
+                    int bestRank = get<0>(rc);
+                    string teamName = get<2>(rc);
+                    int solved = get<3>(rc);
+                    int penalty = get<4>(rc);
+                    cout << teamName << " " << initialRankToTeam[bestRank] << " " << solved << " " << penalty << "\n";
                 }
                 
                 // Clear frozen submission counts
